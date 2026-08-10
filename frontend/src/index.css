@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+/* Design tokens - the single source of truth for the board-game look.
+   Tailwind v4 turns each token into utilities (--color-felt -> bg-felt, text-felt, ...). */
+@theme {
+  --font-display: ui-serif, Georgia, "Times New Roman", serif;
+  --font-body: system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, Consolas, monospace;
+
+  --color-board: #f5eac8;
+  --color-board-deep: #edd998;
+
+  --color-tile-light: #f7de90;
+  --color-tile: #e8c155;
+  --color-tile-dark: #d4a843;
+  --color-tile-edge: #c9992a;
+  --color-tile-shadow: #9e7a2a;
+  --color-tile-blank: #e8dcc0;
+
+  --color-ink: #1a1208;
+  --color-ink-soft: #6b5a3a;
+  --color-ink-muted: #9e7a2a;
+  --color-ink-faint: #bca86a;
+
+  --color-felt: #2d5a27;
+  --color-felt-dark: #1b3a17;
+  --color-gold: #f0d282;
+
+  /* Letter faces coloured by rarity so high-value tiles stand out at a glance. */
+  --color-letter-uncommon: #7b5e00;
+  --color-letter-rare: #c0392b;
+  --color-letter-legendary: #8e1a10;
+
+  --inset-shadow-tile:
+    inset 0 1px 0 rgb(255 255 255 / 0.6), inset 0 -1px 0 rgb(0 0 0 / 0.1);
+  --shadow-panel: 0 2px 20px rgb(155 120 40 / 0.08);
+}
+
+@layer base {
+  body {
+    @apply m-0 bg-board font-body text-ink-soft antialiased;
+  }
+}
