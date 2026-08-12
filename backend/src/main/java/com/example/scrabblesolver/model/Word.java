@@ -1,18 +1,24 @@
 package com.example.scrabblesolver.model;
 
-import static com.example.scrabblesolver.helper.PointCalculator.calculatePointsForWord;
+import com.example.scrabblesolver.model.tiles.LetterTile;
+
+import java.util.List;
 
 public class Word implements Comparable<Word>{
-    private int points;
-    private String name;
+    private final String name;
+    private final List<LetterTile> letters;
 
-    public Word(String name) {
-        this.name = name;
-        points = calculatePointsForWord(name);
+    public Word(List<LetterTile> letters){
+        this.letters = List.copyOf(letters);
+        StringBuilder nameBuilder = new StringBuilder(letters.size());
+        for (LetterTile letter : letters) {
+            nameBuilder.append(letter.letter());
+        }
+        this.name = nameBuilder.toString();
     }
 
-    public int getPoints() {
-        return points;
+    public List<LetterTile> getLetters() {
+        return letters;
     }
 
     public String getName() {
@@ -24,12 +30,7 @@ public class Word implements Comparable<Word>{
     }
 
     @Override
-    public String toString() {
-        return name + ": " + points;
-    }
-
-    @Override
     public int compareTo(Word compareWord) {
-        return compareWord.points - this.points;
+        return compareWord.getLength() - getLength();
     }
 }

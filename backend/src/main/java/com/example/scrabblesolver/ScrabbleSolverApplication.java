@@ -1,12 +1,14 @@
 package com.example.scrabblesolver;
 
-import com.example.scrabblesolver.model.Solutions;
-import com.example.scrabblesolver.repository.CommonScrabbleWords;
+import com.example.scrabblesolver.helper.DefaultScrabbleBoard;
+import com.example.scrabblesolver.model.Move;
+import com.example.scrabblesolver.model.tiles.Tile;
 import com.example.scrabblesolver.repository.TxtFileWordsNWL23;
-import com.example.scrabblesolver.service.Simplesolver;
-import com.example.scrabblesolver.service.SimplesolverWithJoker;
+import com.example.scrabblesolver.service.SolverMultJoker;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import java.util.List;
 import java.util.Scanner;
 
 @SpringBootApplication
@@ -14,8 +16,11 @@ public class ScrabbleSolverApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(ScrabbleSolverApplication.class, args);
-        SimplesolverWithJoker solver = new SimplesolverWithJoker(new TxtFileWordsNWL23());
+        SolverMultJoker solver = new SolverMultJoker(new TxtFileWordsNWL23() {
+        });
         Scanner scanner = new Scanner(System.in);
+        Tile[][] playingBoard = DefaultScrabbleBoard.empty();
+
         while(true){
             System.out.print("> ");
             String input = scanner.nextLine();
@@ -25,8 +30,8 @@ public class ScrabbleSolverApplication {
                 break;
             }
             
-            Solutions solutions = solver.getSolutions(input);
-            System.out.println(solutions);
+            List<Move> moves = solver.getSolutions(input, playingBoard);
+            System.out.println(moves);
         }
         scanner.close();
     }
