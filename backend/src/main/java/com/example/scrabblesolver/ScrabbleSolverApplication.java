@@ -4,7 +4,7 @@ import com.example.scrabblesolver.helper.DefaultScrabbleBoard;
 import com.example.scrabblesolver.model.Move;
 import com.example.scrabblesolver.model.tiles.Tile;
 import com.example.scrabblesolver.repository.TxtFileWordsNWL23;
-import com.example.scrabblesolver.service.SolverMultJoker;
+import com.example.scrabblesolver.service.BoardSolver;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -16,7 +16,7 @@ public class ScrabbleSolverApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(ScrabbleSolverApplication.class, args);
-        SolverMultJoker solver = new SolverMultJoker(new TxtFileWordsNWL23() {
+        BoardSolver solver = new BoardSolver(new TxtFileWordsNWL23() {
         });
         Scanner scanner = new Scanner(System.in);
         Tile[][] playingBoard = DefaultScrabbleBoard.empty();

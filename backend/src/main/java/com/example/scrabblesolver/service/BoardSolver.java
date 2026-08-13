@@ -2,7 +2,6 @@ package com.example.scrabblesolver.service;
 
 import com.example.scrabblesolver.model.DIRECTION;
 import com.example.scrabblesolver.model.Move;
-import com.example.scrabblesolver.model.Solutions;
 import com.example.scrabblesolver.model.Word;
 import com.example.scrabblesolver.model.tiles.LetterTile;
 import com.example.scrabblesolver.model.tiles.SpecialTile;
@@ -15,23 +14,19 @@ import java.util.*;
 import static com.example.scrabblesolver.repository.LetterValues.getLetterValue;
 
 @Service
-public class SolverMultJoker implements ISolverService {
+public class BoardSolver implements ISolverService {
     private IAvailableWords availableWords;
     private static final int SOLUTIONSCOUNT = 10;
 
-    public SolverMultJoker(IAvailableWords availableWords) {
+    public BoardSolver(IAvailableWords availableWords) {
         this.availableWords = availableWords;
     }
 
     @Override
     public List<Move> getSolutions(String inputChars, Tile[][] board) {
-
         ArrayList<Word> possibleWords = calculatePossibleSolutions(toHashmap(inputChars.toCharArray()));
 
-        List<Move> Moves = getBestMoves(possibleWords, board);
-
-
-        return Moves;
+        return getBestMoves(possibleWords, board);
     }
 
     private List<Move> getBestMoves(ArrayList<Word> possibleWords, Tile[][] board) {
