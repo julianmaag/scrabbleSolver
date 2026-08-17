@@ -33,7 +33,7 @@ public class BoardSolver implements ISolverService {
             for(DIRECTION direction : DIRECTION.values()) {
                 for(int r = 0; r < board.length ; r++){
                     for(int c = 0; c < board[0].length; c++){
-                        matchWord(board, input, word, direction, r, c, isFirstMove)
+                        matchWord(board, (HashMap<Character, Integer>) input.clone(), word, direction, r, c, isFirstMove)
                                 .ifPresent(possibleMoves::add);
                     }
                 }
@@ -62,7 +62,7 @@ public class BoardSolver implements ISolverService {
 
         // how long is word if longer then board. length -> cancel
         int wordLength = word.length();
-        if(wordLength > board.length){
+        if(wordLength > board.length && wordLength > board[0].length){
             return Optional.empty();
         }
 
@@ -152,7 +152,7 @@ public class BoardSolver implements ISolverService {
         try {
             Tile tileBefore;
             Tile tileAfter;
-            if (direction == DIRECTION.ACCROSS) {
+            if (direction == DIRECTION.DOWN) {
                  tileBefore = board[row - 1][column];
                  tileAfter = board[row + wordLength][column];
             } else {
@@ -162,8 +162,7 @@ public class BoardSolver implements ISolverService {
             if(tileBefore instanceof LetterTile || tileAfter instanceof LetterTile){
                 return Optional.empty();
             }
-        } catch (Exception e){
-            return Optional.empty();
+        } catch (Exception _){
         }
 
 
@@ -175,10 +174,35 @@ public class BoardSolver implements ISolverService {
 
         int points = calculatePoints(board, adjacantWords, row, column, word);
 
-        System.out.println(Arrays.deepToString(appliedBoard) + ".");
+        applyWordToBoard(appliedBoard, row, column, direction, wordToApply);
 
-        Move move = new Move(appliedBoard, new Word(new ArrayList<>()), points);
+        Move move = createMove(appliedBoard, points, wordToApply);
         return Optional.of(move);
+    }
+
+    private Move createMove(Tile[][] appliedBoard, int points, ArrayList<LetterTile> wordToApply) {
+        Word word = new Word(wordToApply);
+        return new Move(appliedBoard, word, points);
+    }
+
+    private void applyWordToBoard(Tile[][] appliedBoard, int row, int column, DIRECTION direction, ArrayList<LetterTile> wordToApply) {
+        int rowStep = direction == DIRECTION.ACCROSS ? 0 : 1;
+        int columnStep = direction == DIRECTION.ACCROSS ? 1 : 0;
+
+        int currentRow = row;
+        int currentColumn = column;
+
+        // wordToApply only holds the tiles taken from the rack, so cells that already
+        // carry a letter of the word have to be skipped without consuming a tile
+        for (LetterTile tile : wordToApply) {
+            while (appliedBoard[currentRow][currentColumn] instanceof LetterTile) {
+                currentRow += rowStep;
+                currentColumn += columnStep;
+            }
+            appliedBoard[currentRow][currentColumn] = tile;
+            currentRow += rowStep;
+            currentColumn += columnStep;
+        }
     }
 
     private int calculatePoints(Tile[][] board, ArrayList<String> adjacantWords, int row, int column, String word) {
