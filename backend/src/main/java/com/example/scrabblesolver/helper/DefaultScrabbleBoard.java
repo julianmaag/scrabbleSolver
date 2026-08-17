@@ -1,31 +1,35 @@
 package com.example.scrabblesolver.helper;
 
+import com.example.scrabblesolver.model.tiles.LetterTile;
 import com.example.scrabblesolver.model.tiles.SpecialTile;
 import com.example.scrabblesolver.model.tiles.Tile;
 
-import java.util.Arrays;
+
+import static com.example.scrabblesolver.model.tiles.SpecialTile.LETTER2;
+import static com.example.scrabblesolver.model.tiles.SpecialTile.LETTER3;
+import static com.example.scrabblesolver.model.tiles.SpecialTile.NONE;
+import static com.example.scrabblesolver.model.tiles.SpecialTile.WORD2;
+import static com.example.scrabblesolver.model.tiles.SpecialTile.WORD3;
 
 public final class DefaultScrabbleBoard {
     public static final int SIZE = 15;
 
-    private static final int[][] TRIPLE_WORD = {
-            {0, 0}, {0, 7}, {0, 14}, {7, 0},
-            {7, 14}, {14, 0}, {14, 7}, {14, 14}
-    };
-    private static final int[][] DOUBLE_WORD = {
-            {1, 1}, {1, 13}, {2, 2}, {2, 12}, {3, 3}, {3, 11}, {4, 4}, {4, 10},
-            {7, 7},
-            {10, 4}, {10, 10}, {11, 3}, {11, 11}, {12, 2}, {12, 12}, {13, 1}, {13, 13}
-    };
-    private static final int[][] TRIPLE_LETTER = {
-            {1, 5}, {1, 9}, {5, 1}, {5, 5}, {5, 9}, {5, 13},
-            {9, 1}, {9, 5}, {9, 9}, {9, 13}, {13, 5}, {13, 9}
-    };
-    private static final int[][] DOUBLE_LETTER = {
-            {0, 3}, {0, 11}, {2, 6}, {2, 8}, {3, 0}, {3, 7}, {3, 14},
-            {6, 2}, {6, 6}, {6, 8}, {6, 12}, {7, 3}, {7, 11},
-            {8, 2}, {8, 6}, {8, 8}, {8, 12}, {11, 0}, {11, 7}, {11, 14},
-            {12, 6}, {12, 8}, {14, 3}, {14, 11}
+    public static final Tile[][] BOARD = {
+        {WORD3, NONE, NONE, LETTER2, NONE, NONE, NONE, WORD3, NONE, NONE, NONE, LETTER2, NONE, NONE, WORD3},
+        {NONE, WORD2, NONE, NONE, NONE, LETTER3, NONE, NONE, NONE, LETTER3, NONE, NONE, NONE, WORD2, NONE},
+        {NONE, NONE, WORD2, NONE, NONE, NONE, LETTER2, NONE, LETTER2, NONE, NONE, NONE, WORD2, NONE, NONE},
+        {LETTER2, NONE, NONE, WORD2, NONE, NONE, NONE, LETTER2, NONE, NONE, NONE, WORD2, NONE, NONE, LETTER2},
+        {NONE, NONE, NONE, NONE, WORD2, NONE, NONE, NONE, NONE, NONE, WORD2, NONE, NONE, NONE, NONE},
+        {NONE, LETTER3, NONE, NONE, NONE, LETTER3, NONE, NONE, NONE, LETTER3, NONE, NONE, NONE, LETTER3, NONE},
+        {NONE, NONE, LETTER2, NONE, NONE, NONE, LETTER2, NONE, LETTER2, NONE, NONE, NONE, LETTER2, NONE, NONE},
+        {WORD3, NONE, NONE, LETTER2, NONE, NONE, NONE, WORD2, NONE, NONE, NONE, LETTER2, NONE, NONE, WORD3},
+        {NONE, NONE, LETTER2, NONE, NONE, NONE, LETTER2, NONE, LETTER2, NONE, NONE, NONE, LETTER2, NONE, NONE},
+        {NONE, LETTER3, NONE, NONE, NONE, LETTER3, NONE, NONE, NONE, LETTER3, NONE, NONE, NONE, LETTER3, NONE},
+        {NONE, NONE, NONE, NONE, WORD2, NONE, NONE, NONE, NONE, NONE, WORD2, NONE, NONE, NONE, NONE},
+        {LETTER2, NONE, NONE, WORD2, NONE, NONE, NONE, LETTER2, NONE, NONE, NONE, WORD2, NONE, NONE, LETTER2},
+        {NONE, NONE, WORD2, NONE, NONE, NONE, LETTER2, NONE, LETTER2, new LetterTile('t', false), new LetterTile('e', false), new LetterTile('l', false), new LetterTile('l', false), NONE, NONE},
+        {NONE, WORD2, NONE, NONE, NONE, LETTER3, NONE, NONE, NONE, LETTER3, NONE, NONE, NONE, WORD2, NONE},
+        {WORD3, NONE, NONE, LETTER2, NONE, NONE, NONE, WORD3, NONE, NONE, NONE, LETTER2, NONE, NONE, WORD3}
     };
 
     private DefaultScrabbleBoard() {
@@ -33,20 +37,9 @@ public final class DefaultScrabbleBoard {
 
     public static Tile[][] empty() {
         Tile[][] board = new Tile[SIZE][SIZE];
-        for (Tile[] row : board) {
-            Arrays.fill(row, SpecialTile.NONE);
+        for (int row = 0; row < SIZE; row++) {
+            board[row] = BOARD[row].clone();
         }
-
-        place(board, TRIPLE_WORD, SpecialTile.WORD3);
-        place(board, DOUBLE_WORD, SpecialTile.WORD2);
-        place(board, TRIPLE_LETTER, SpecialTile.LETTER3);
-        place(board, DOUBLE_LETTER, SpecialTile.LETTER2);
         return board;
-    }
-
-    private static void place(Tile[][] board, int[][] coordinates, SpecialTile tile) {
-        for (int[] coordinate : coordinates) {
-            board[coordinate[0]][coordinate[1]] = tile;
-        }
     }
 }
