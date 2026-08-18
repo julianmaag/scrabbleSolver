@@ -4,11 +4,6 @@ import com.example.scrabblesolver.model.tiles.LetterTile;
 
 import java.util.List;
 
-/**
- * A word as it sits on the board: its tiles plus where they start and which way they run.
- * {@code letters} is the complete word, including tiles that were already on the board,
- * so the anchor and the tile at index {@code i} always describe the same cell.
- */
 public class Word implements Comparable<Word>{
     private final String name;
     private final List<LetterTile> letters;

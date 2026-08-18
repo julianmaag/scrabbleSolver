@@ -6,5 +6,5 @@ import java.util.Set;
 
 @Repository
 public interface IAvailableWords {
-    public Set<String> getAvailableWords();
+    Set<String> getAvailableWords();
 }

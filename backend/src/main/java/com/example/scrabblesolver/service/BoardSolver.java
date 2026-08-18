@@ -30,7 +30,6 @@ public class BoardSolver implements ISolverService {
         boolean isFirstMove = isBoardEmpty(board);
         HashMap<Character, Integer> input = toHashmap(inputChars.toCharArray());
 
-
         for(String word : availableWords.getAvailableWords()){
             for(DIRECTION direction : DIRECTION.values()) {
                 for(int r = 0; r < board.length ; r++){
@@ -52,7 +51,6 @@ public class BoardSolver implements ISolverService {
     private Optional<Move> matchWord(Tile[][] board, HashMap<Character, Integer> input, String wordString, DIRECTION direction, int row, int column, boolean isFirstMove) {
         ArrayList<LetterTile> wordToApply = new ArrayList<>();
         ArrayList<Word> adjacentWords = new ArrayList<>();
-
 
         int consumedFromRack = 0;
         int usedExistingLetters = 0;
@@ -122,7 +120,7 @@ public class BoardSolver implements ISolverService {
                 wordToApply.add(placedTile);
                 consumedFromRack++;
 
-                List<LetterTile> adjacantWordLetters = findAdjacantWord(board, direction, currentRow, currentColumn, placedTile);
+                List<LetterTile> adjacantWordLetters = findAdjacentWord(board, direction, currentRow, currentColumn, placedTile);
                 if (adjacantWordLetters.size() > 1) {
                     if (!isWordLegal(adjacantWordLetters)) {
                         return Optional.empty();
@@ -171,10 +169,8 @@ public class BoardSolver implements ISolverService {
             if(tileBefore instanceof LetterTile || tileAfter instanceof LetterTile){
                 return Optional.empty();
             }
-        } catch (Exception _){
+        } catch (Exception _){// exception would be thrown because of outofbounds, this is fine as if behind/ in front of the letter is nothing its also valid
         }
-
-
 
         // calculate points for move
         Tile[][] appliedBoard = Arrays.stream(board)
@@ -250,8 +246,8 @@ public class BoardSolver implements ISolverService {
         return points;
     }
 
-    private boolean isWordLegal(List<LetterTile> adjacantWord) {
-        return availableWords.getAvailableWords().contains(toWord(adjacantWord));
+    private boolean isWordLegal(List<LetterTile> adjacentWord) {
+        return availableWords.getAvailableWords().contains(toWord(adjacentWord));
     }
 
     private static String toWord(List<LetterTile> tiles) {
@@ -262,7 +258,7 @@ public class BoardSolver implements ISolverService {
         return word.toString();
     }
 
-    private List<LetterTile> findAdjacantWord(Tile[][] board, DIRECTION direction, int currentRow, int currentColumn, LetterTile placedTile) {
+    private List<LetterTile> findAdjacentWord(Tile[][] board, DIRECTION direction, int currentRow, int currentColumn, LetterTile placedTile) {
         int rowStep = direction == DIRECTION.ACCROSS ? 1 : 0;
         int columnStep = direction == DIRECTION.ACCROSS ? 0 : 1;
         LinkedList<LetterTile> wordLetters = new LinkedList<>();

@@ -3,7 +3,6 @@ package com.example.scrabblesolver;
 import com.example.scrabblesolver.helper.DefaultScrabbleBoard;
 import com.example.scrabblesolver.model.Move;
 import com.example.scrabblesolver.model.tiles.Tile;
-import com.example.scrabblesolver.repository.CommonScrabbleWords;
 import com.example.scrabblesolver.repository.TxtFileWordsNWL23;
 import com.example.scrabblesolver.service.BoardSolver;
 import org.springframework.boot.SpringApplication;
@@ -15,7 +14,7 @@ import java.util.Scanner;
 @SpringBootApplication
 public class ScrabbleSolverApplication {
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         SpringApplication.run(ScrabbleSolverApplication.class, args);
         BoardSolver solver = new BoardSolver(new TxtFileWordsNWL23() {
         });
