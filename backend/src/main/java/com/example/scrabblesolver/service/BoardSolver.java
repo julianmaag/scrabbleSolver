@@ -15,10 +15,10 @@ import static com.example.scrabblesolver.repository.LetterValues.getLetterValue;
 
 @Service
 public class BoardSolver implements ISolverService {
-    private IAvailableWords availableWords;
-    private static final int SOLUTIONSCOUNT = 10;
-    private static final int BINGOPOINTS = 50;
-    private static final int RACKSIZE = 7;
+    private final IAvailableWords availableWords;
+    private static final int SOLUTION_COUNT = 10;
+    private static final int BINGO_POINTS = 50;
+    private static final int RACK_SIZE = 7;
 
     public BoardSolver(IAvailableWords availableWords) {
         this.availableWords = availableWords;
@@ -27,7 +27,7 @@ public class BoardSolver implements ISolverService {
     @Override
     public List<Move> getSolutions(String inputChars, Tile[][] board) {
         List<Move> possibleMoves = new ArrayList<>();
-        boolean isFirstMove = false; // TODO
+        boolean isFirstMove = isBoardEmpty(board);
         HashMap<Character, Integer> input = toHashmap(inputChars.toCharArray());
 
 
@@ -45,13 +45,13 @@ public class BoardSolver implements ISolverService {
         Collections.sort(possibleMoves);
         return possibleMoves.subList(
                 0,
-                Math.min(SOLUTIONSCOUNT, possibleMoves.size())
+                Math.min(SOLUTION_COUNT, possibleMoves.size())
         );
     }
 
     private Optional<Move> matchWord(Tile[][] board, HashMap<Character, Integer> input, String wordString, DIRECTION direction, int row, int column, boolean isFirstMove) {
         ArrayList<LetterTile> wordToApply = new ArrayList<>();
-        ArrayList<Word> adjacantWords = new ArrayList<>();
+        ArrayList<Word> adjacentWords = new ArrayList<>();
 
 
         int consumedFromRack = 0;
@@ -128,16 +128,26 @@ public class BoardSolver implements ISolverService {
                         return Optional.empty();
                     }
                     Word adjacantWord = new Word(adjacantWordLetters, currentRow, currentColumn, direction);
-                    adjacantWords.add(adjacantWord);
+                    adjacentWords.add(adjacantWord);
                 }
             }
         }
 
 
         // check if word uses existing letters, first move!!
-        if (!(usedExistingLetters > 0) && adjacantWords.isEmpty()) {
+        if (!(usedExistingLetters > 0) && adjacentWords.isEmpty()) {
             if (!isFirstMove) {
                 return Optional.empty();
+            } else{
+                int centerRow = board.length / 2;
+                int centerColumn = board[0].length / 2;
+
+                boolean coversCenter = direction == DIRECTION.ACCROSS
+                        ? row == centerRow && column <= centerColumn && centerColumn < column + wordLength
+                        : column == centerColumn && row <= centerRow && centerRow < row + wordLength;
+                if(!coversCenter){
+                    return Optional.empty();
+                }
             }
         }
 
@@ -173,9 +183,9 @@ public class BoardSolver implements ISolverService {
 
         Word word = new Word(wordToApply, row, column, direction);
 
-        int points = calculatePoints(board, adjacantWords, row, column, word, direction);
-        if(consumedFromRack == RACKSIZE){
-            points += BINGOPOINTS;
+        int points = calculatePoints(board, adjacentWords, row, column, word, direction);
+        if(consumedFromRack == RACK_SIZE){
+            points += BINGO_POINTS;
         }
 
         applyWordToBoard(appliedBoard, row, column, direction, wordToApply);
@@ -279,6 +289,17 @@ public class BoardSolver implements ISolverService {
         return wordLetters;
     }
 
+
+    private boolean isBoardEmpty(Tile[][] board) {
+        for (Tile[] row : board) {
+            for (Tile tile : row) {
+                if (tile instanceof LetterTile) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 
     private HashMap<Character, Integer> toHashmap(char[] inputChars) {
         HashMap<Character, Integer> chars = new HashMap<>();
