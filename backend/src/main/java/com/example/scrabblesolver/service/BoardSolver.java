@@ -1,8 +1,6 @@
 package com.example.scrabblesolver.service;
 
-import com.example.scrabblesolver.model.DIRECTION;
-import com.example.scrabblesolver.model.Move;
-import com.example.scrabblesolver.model.Word;
+import com.example.scrabblesolver.model.*;
 import com.example.scrabblesolver.model.tiles.LetterTile;
 import com.example.scrabblesolver.model.tiles.SpecialTile;
 import com.example.scrabblesolver.model.tiles.Tile;
@@ -28,13 +26,13 @@ public class BoardSolver implements ISolverService {
     public List<Move> getSolutions(String inputChars, Tile[][] board) {
         List<Move> possibleMoves = new ArrayList<>();
         boolean isFirstMove = isBoardEmpty(board);
-        HashMap<Character, Integer> input = toHashmap(inputChars.toCharArray());
+        Rack rack = Rack.of(inputChars);
 
         for(String word : availableWords.getAvailableWords()){
             for(DIRECTION direction : DIRECTION.values()) {
                 for(int r = 0; r < board.length ; r++){
                     for(int c = 0; c < board[0].length; c++){
-                        matchWord(board, (HashMap<Character, Integer>) input.clone(), word, direction, r, c, isFirstMove)
+                        matchWord(board, rack.copy(), word, direction, r, c, isFirstMove)
                                 .ifPresent(possibleMoves::add);
                     }
                 }
@@ -48,17 +46,13 @@ public class BoardSolver implements ISolverService {
         );
     }
 
-    private Optional<Move> matchWord(Tile[][] board, HashMap<Character, Integer> input, String wordString, DIRECTION direction, int row, int column, boolean isFirstMove) {
+    private Optional<Move> matchWord(Tile[][] board, Rack rack, String wordString, DIRECTION direction, int row, int column, boolean isFirstMove) {
         ArrayList<LetterTile> wordToApply = new ArrayList<>();
         ArrayList<Word> adjacentWords = new ArrayList<>();
+        ArrayList<Placement> placements = new ArrayList<>();
 
-        int consumedFromRack = 0;
         int usedExistingLetters = 0;
 
-        int jokerCount = 0;
-        if (input.containsKey('?')) {
-            jokerCount = input.get('?');
-        }
 
         // how long is word if longer then board. length -> cancel
         int wordLength = wordString.length();
@@ -69,15 +63,15 @@ public class BoardSolver implements ISolverService {
         // check tiles for word length and direction, if there is a letter and not in word -> cancel
 
         for (int i = 0; i < wordString.length(); i++) {
-            int currentRow = direction == DIRECTION.ACCROSS ? row : row + i;
-            int currentColumn = direction == DIRECTION.ACCROSS ? column + i : column;
+            int currentRow = direction == DIRECTION.ACROSS ? row : row + i;
+            int currentColumn = direction == DIRECTION.ACROSS ? column + i : column;
 
             // check if position is in the board
             if (currentRow >= board.length || currentColumn >= board[0].length) {
                 return Optional.empty();
             }
 
-            if (direction == DIRECTION.ACCROSS &&
+            if (direction == DIRECTION.ACROSS &&
                 column + wordString.length() > board[0].length) {
                 return Optional.empty();
             }
@@ -100,32 +94,23 @@ public class BoardSolver implements ISolverService {
             }
             // else consume letter
             else {
-                int remaining = input.getOrDefault(wordString.charAt(i), 0);
-
-                LetterTile placedTile;
-                if (remaining > 0) {
-                    if (remaining == 1) {
-                        input.remove(wordString.charAt(i));
-                    } else {
-                        input.put(wordString.charAt(i), remaining - 1);
-                    }
-                    placedTile = new LetterTile(wordString.charAt(i), false);
-                } else if (jokerCount > 0) {
-                    jokerCount--;
-                    placedTile = new LetterTile(wordString.charAt(i), true);
-                } else {
+                char letter = wordString.charAt(i);
+                char rackTile = rack.consume(letter);
+                if (rackTile == Rack.NONE) {
                     return Optional.empty();
                 }
 
+                Placement placement = new Placement(currentRow, currentColumn, rackTile, letter);
+                LetterTile placedTile = placement.toTile();
+                placements.add(placement);
                 wordToApply.add(placedTile);
-                consumedFromRack++;
 
-                List<LetterTile> adjacantWordLetters = findAdjacentWord(board, direction, currentRow, currentColumn, placedTile);
-                if (adjacantWordLetters.size() > 1) {
-                    if (!isWordLegal(adjacantWordLetters)) {
+                List<LetterTile> adjacentWordLetters = findAdjacentWord(board, direction, currentRow, currentColumn, placedTile);
+                if (adjacentWordLetters.size() > 1) {
+                    if (!isWordLegal(adjacentWordLetters)) {
                         return Optional.empty();
                     }
-                    Word adjacantWord = new Word(adjacantWordLetters, currentRow, currentColumn, direction);
+                    Word adjacantWord = new Word(adjacentWordLetters, currentRow, currentColumn, direction);
                     adjacentWords.add(adjacantWord);
                 }
             }
@@ -140,7 +125,7 @@ public class BoardSolver implements ISolverService {
                 int centerRow = board.length / 2;
                 int centerColumn = board[0].length / 2;
 
-                boolean coversCenter = direction == DIRECTION.ACCROSS
+                boolean coversCenter = direction == DIRECTION.ACROSS
                         ? row == centerRow && column <= centerColumn && centerColumn < column + wordLength
                         : column == centerColumn && row <= centerRow && centerRow < row + wordLength;
                 if(!coversCenter){
@@ -150,26 +135,36 @@ public class BoardSolver implements ISolverService {
         }
 
         // check if at least one tile came from rack
-        if (!(consumedFromRack > 0)) {
-           return Optional.empty();
+        if (placements.isEmpty()) {
+            return Optional.empty();
         }
 
 
         // check if there are tiles with chars directly after/ before word
         try {
             Tile tileBefore;
-            Tile tileAfter;
             if (direction == DIRECTION.DOWN) {
                  tileBefore = board[row - 1][column];
-                 tileAfter = board[row + wordLength][column];
             } else {
                  tileBefore = board[row][column - 1];
-                 tileAfter = board[row][column + wordLength];
             }
-            if(tileBefore instanceof LetterTile || tileAfter instanceof LetterTile){
+            if(tileBefore instanceof LetterTile){
                 return Optional.empty();
             }
-        } catch (Exception _){// exception would be thrown because of outofbounds, this is fine as if behind/ in front of the letter is nothing its also valid
+        }
+        catch (Exception _){// exception would be thrown because of out of bounds, this is fine as if behind/ in front of the letter is nothing its also valid
+        }
+        try{
+            Tile tileAfter;
+            if (direction == DIRECTION.DOWN) {
+                tileAfter = board[row + wordLength][column];
+            } else {
+                tileAfter = board[row][column + wordLength];
+            }
+            if(tileAfter instanceof LetterTile){
+                return Optional.empty();
+            }
+        } catch (Exception _){// exception would be thrown because of out of bounds, this is fine as if behind/ in front of the letter is nothing its also valid
         }
 
         // calculate points for move
@@ -180,23 +175,20 @@ public class BoardSolver implements ISolverService {
         Word word = new Word(wordToApply, row, column, direction);
 
         int points = calculatePoints(board, adjacentWords, row, column, word, direction);
-        if(consumedFromRack == RACK_SIZE){
+        if (placements.size() == RACK_SIZE) {
             points += BINGO_POINTS;
         }
 
         applyWordToBoard(appliedBoard, row, column, direction, wordToApply);
 
-        Move move = createMove(appliedBoard, points, word);
+        Move move = new Move(appliedBoard, word, points, placements);
         return Optional.of(move);
     }
 
-    private Move createMove(Tile[][] appliedBoard, int points, Word word) {
-        return new Move(appliedBoard, word, points);
-    }
 
     private void applyWordToBoard(Tile[][] appliedBoard, int row, int column, DIRECTION direction, ArrayList<LetterTile> wordToApply) {
-        int rowStep = direction == DIRECTION.ACCROSS ? 0 : 1;
-        int columnStep = direction == DIRECTION.ACCROSS ? 1 : 0;
+        int rowStep = direction == DIRECTION.ACROSS ? 0 : 1;
+        int columnStep = direction == DIRECTION.ACROSS ? 1 : 0;
 
         for (LetterTile tile : wordToApply) {
             appliedBoard[row][column] = tile;
@@ -205,12 +197,12 @@ public class BoardSolver implements ISolverService {
         }
     }
 
-    private int calculatePoints(Tile[][] board, ArrayList<Word> adjacantWords, int r, int c, Word word, DIRECTION direction) {
+    private int calculatePoints(Tile[][] board, ArrayList<Word> adjacentWords, int r, int c, Word word, DIRECTION direction) {
         int pointsForMove = 0;
         pointsForMove += calculatePointForWord(board, r, c, word, direction);
 
-        for(Word adjacantWord : adjacantWords){
-            DIRECTION dir = direction == DIRECTION.ACCROSS ? DIRECTION.DOWN : DIRECTION.ACCROSS;
+        for(Word adjacantWord : adjacentWords){
+            DIRECTION dir = direction == DIRECTION.ACROSS ? DIRECTION.DOWN : DIRECTION.ACROSS;
             pointsForMove += calculatePointForWord(board, word.getRow(), word.getColumn(), adjacantWord, dir);
         }
 
@@ -223,8 +215,8 @@ public class BoardSolver implements ISolverService {
 
 
         for (int i = 0; i < word.getLength(); i++) {
-            int row = direction == DIRECTION.ACCROSS ? r : r + i;
-            int column = direction == DIRECTION.ACCROSS ? c + i : c;
+            int row = direction == DIRECTION.ACROSS ? r : r + i;
+            int column = direction == DIRECTION.ACROSS ? c + i : c;
             LetterTile letter = word.getLetters().get(i);
 
             Tile existingTile = board[row][column];
@@ -259,8 +251,8 @@ public class BoardSolver implements ISolverService {
     }
 
     private List<LetterTile> findAdjacentWord(Tile[][] board, DIRECTION direction, int currentRow, int currentColumn, LetterTile placedTile) {
-        int rowStep = direction == DIRECTION.ACCROSS ? 1 : 0;
-        int columnStep = direction == DIRECTION.ACCROSS ? 0 : 1;
+        int rowStep = direction == DIRECTION.ACROSS ? 1 : 0;
+        int columnStep = direction == DIRECTION.ACROSS ? 0 : 1;
         LinkedList<LetterTile> wordLetters = new LinkedList<>();
         wordLetters.add(placedTile);
 
@@ -285,7 +277,6 @@ public class BoardSolver implements ISolverService {
         return wordLetters;
     }
 
-
     private boolean isBoardEmpty(Tile[][] board) {
         for (Tile[] row : board) {
             for (Tile tile : row) {
@@ -295,13 +286,5 @@ public class BoardSolver implements ISolverService {
             }
         }
         return true;
-    }
-
-    private HashMap<Character, Integer> toHashmap(char[] inputChars) {
-        HashMap<Character, Integer> chars = new HashMap<>();
-        for (Character c : inputChars) {
-            chars.merge(c, 1, Integer::sum);
-        }
-        return chars;
     }
 }

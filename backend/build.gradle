@@ -27,4 +27,6 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    // the real-data solver tests hold every candidate move in memory before ranking them
+    maxHeapSize = '2g'
 }

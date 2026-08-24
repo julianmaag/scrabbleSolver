@@ -1,7 +1,5 @@
 package com.example.scrabblesolver.helper;
 
-import com.example.scrabblesolver.model.tiles.LetterTile;
-import com.example.scrabblesolver.model.tiles.SpecialTile;
 import com.example.scrabblesolver.model.tiles.Tile;
 
 
@@ -27,7 +25,7 @@ public final class DefaultScrabbleBoard {
         {NONE, LETTER3, NONE, NONE, NONE, LETTER3, NONE, NONE, NONE, LETTER3, NONE, NONE, NONE, LETTER3, NONE},
         {NONE, NONE, NONE, NONE, WORD2, NONE, NONE, NONE, NONE, NONE, WORD2, NONE, NONE, NONE, NONE},
         {LETTER2, NONE, NONE, WORD2, NONE, NONE, NONE, LETTER2, NONE, NONE, NONE, WORD2, NONE, NONE, LETTER2},
-        {NONE, NONE, WORD2, NONE, NONE, NONE, LETTER2, NONE, LETTER2, new LetterTile('t', false), new LetterTile('e', false), new LetterTile('l', false), new LetterTile('l', false), NONE, NONE},
+        {NONE, NONE, WORD2, NONE, NONE, NONE, LETTER2, NONE, LETTER2, NONE, NONE, NONE, WORD2, NONE, NONE},
         {NONE, WORD2, NONE, NONE, NONE, LETTER3, NONE, NONE, NONE, LETTER3, NONE, NONE, NONE, WORD2, NONE},
         {WORD3, NONE, NONE, LETTER2, NONE, NONE, NONE, WORD3, NONE, NONE, NONE, LETTER2, NONE, NONE, WORD3}
     };
