@@ -1,32 +1,53 @@
-import { useCallback, useState } from 'react';
-import { solveRack } from '@/services/solverService';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { solve } from '@/services/solverService';
+import type { BoardState } from '@/types/board';
+import type { Move } from '@/types/move';
 import type { Rack } from '@/types/rack';
-import type { ScoredWord } from '@/types/solution';
 
 /** A discriminated union makes impossible states (e.g. loading *and* solved) unrepresentable. */
 export type SolverState =
   | { status: 'idle' }
   | { status: 'loading' }
-  | { status: 'solved'; words: ScoredWord[] }
+  | { status: 'solved'; moves: Move[] }
   | { status: 'error'; message: string };
 
 export function useSolver() {
   const [state, setState] = useState<SolverState>({ status: 'idle' });
+  const inFlight = useRef<AbortController>(null);
 
-  const solve = useCallback(async (rack: Rack) => {
-    if (rack.length === 0) return;
-    setState({ status: 'loading' });
-    try {
-      setState({ status: 'solved', words: await solveRack(rack) });
-    } catch (error) {
-      setState({
-        status: 'error',
-        message: error instanceof Error ? error.message : 'Could not reach the solver.',
-      });
-    }
+  // Abandoning a request is normal here, so never surface it as an error.
+  const abort = useCallback(() => {
+    inFlight.current?.abort();
+    inFlight.current = null;
   }, []);
 
-  const reset = useCallback(() => setState({ status: 'idle' }), []);
+  useEffect(() => abort, [abort]);
 
-  return { state, solve, reset };
+  const run = useCallback(
+    async (rack: Rack, board: BoardState) => {
+      abort();
+      const controller = new AbortController();
+      inFlight.current = controller;
+      setState({ status: 'loading' });
+
+      try {
+        const moves = await solve(rack, board, controller.signal);
+        setState({ status: 'solved', moves });
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        setState({
+          status: 'error',
+          message: error instanceof Error ? error.message : 'Could not reach the solver.',
+        });
+      }
+    },
+    [abort],
+  );
+
+  const reset = useCallback(() => {
+    abort();
+    setState({ status: 'idle' });
+  }, [abort]);
+
+  return { state, solve: run, reset };
 }

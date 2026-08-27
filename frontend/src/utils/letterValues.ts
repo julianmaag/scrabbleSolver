@@ -17,7 +17,3 @@ export const LETTER_VALUES: Readonly<Record<string, number>> = Object.fromEntrie
 export function getLetterValue(char: string): number {
   return LETTER_VALUES[char.toLowerCase()] ?? 0;
 }
-
-export function scoreWord(word: string): number {
-  return [...word].reduce((total, char) => total + getLetterValue(char), 0);
-}

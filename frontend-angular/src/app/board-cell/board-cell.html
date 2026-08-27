@@ -1,0 +1,15 @@
+<button
+  type="button"
+  class="board-cell flex h-11 w-11 items-center justify-center border-2 border-black"
+  [class.bg-highlight]="selected()"
+  [attr.aria-pressed]="selected()"
+  (click)="picked.emit()"
+>
+  @if (letter()) {
+    <app-tile class="h-full w-full" [letter]="letter()" />
+  } @else {
+    <span class="text-xs text-gray-400">
+      {{ type() }}
+    </span>
+  }
+</button>

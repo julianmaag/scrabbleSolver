@@ -1,0 +1,14 @@
+<div class="board grid w-fit grid-cols-15 grid-rows-15 gap-0.5 m-1 p-1">
+    @for (row of board(); track $index; let rowIndex = $index) {
+        @for (cell of row; track $index; let colIndex = $index) {
+            <app-board-cell
+            [letter]="cell.letter"
+            [type]="cell.type"
+            [selected]="isSelected(rowIndex, colIndex)"
+            (click)="remove(rowIndex, colIndex)"
+            (picked)="select(rowIndex, colIndex)"
+            (keydown)="handleOnKeydown($event, rowIndex, colIndex)"
+            />
+        }
+    }
+</div>

@@ -1,63 +1,51 @@
 import { cn } from '@/lib/utils';
+import { BLANK } from '@/types/validChar';
 import { getLetterValue } from '@/utils/letterValues';
 
 const SIZES = {
-  sm: { face: 'w-8 h-8 text-sm', value: 'text-[7px]' },
-  md: { face: 'w-12 h-12 text-xl', value: 'text-[9px]' },
-  lg: { face: 'w-14 h-14 text-2xl', value: 'text-[10px]' },
+  /** Fills its container — used for board squares, where the grid sets the size. */
+  xs: { face: 'w-full h-full rounded-none border-0 text-[11px]', value: 'hidden' },
+  sm: { face: 'w-8 h-8 text-[13px]', value: 'text-[7px]' },
+  md: { face: 'w-11 h-11 text-lg', value: 'text-[8px]' },
+  lg: { face: 'w-13 h-13 text-xl', value: 'text-[9px]' },
 } as const;
 
 export type TileSize = keyof typeof SIZES;
 
-const BLANK = '?';
-
-function accentClass(value: number): string {
-  if (value >= 10) return 'text-letter-legendary';
-  if (value >= 8) return 'text-letter-rare';
-  if (value >= 5) return 'text-letter-uncommon';
-  return 'text-ink';
-}
-
 type TileProps = {
   letter: string;
   size?: TileSize;
+  /** A blank tile scores nothing, whichever letter it stands for. Defaults to the `?` face. */
+  blank?: boolean;
   className?: string;
 };
 
-/** Purely presentational: renders one wooden tile with its letter and point value. */
-export function Tile({ letter, size = 'md', className }: TileProps) {
-  const value = getLetterValue(letter);
-  const isBlank = letter === BLANK;
-  const accent = accentClass(value);
+/** Purely presentational: one flat tile with its letter and, where it fits, its point value. */
+export function Tile({ letter, size = 'md', blank = letter === BLANK, className }: TileProps) {
+  const value = blank ? 0 : getLetterValue(letter);
 
   return (
-    <div className={cn('relative shrink-0 select-none', SIZES[size].face, className)}>
-      <div className="absolute inset-0 translate-y-1 rounded-[3px] bg-tile-shadow" />
-      <div
-        className={cn(
-          'absolute inset-0 flex items-center justify-center rounded-[3px]',
-          'border border-tile-edge inset-shadow-tile',
-          isBlank
-            ? 'bg-tile-blank'
-            : 'bg-linear-145 from-tile-light from-0% via-tile via-60% to-tile-dark',
-        )}
-      >
-        <span className={cn('font-mono font-semibold leading-none tracking-tight', accent)}>
-          {letter.toUpperCase()}
+    <div
+      className={cn(
+        'relative flex shrink-0 select-none items-center justify-center rounded-sm border',
+        blank ? 'border-dashed border-ink-faint bg-tile-blank' : 'border-line-strong bg-surface',
+        SIZES[size].face,
+        className,
+      )}
+    >
+      <span className="font-mono font-semibold leading-none tracking-tight text-ink">
+        {letter.toUpperCase()}
+      </span>
+      {!blank && (
+        <span
+          className={cn(
+            'absolute right-0.5 bottom-0 font-mono leading-none text-ink-muted',
+            SIZES[size].value,
+          )}
+        >
+          {value}
         </span>
-        {!isBlank && (
-          <span
-            className={cn(
-              'absolute right-1 bottom-0.5 font-mono font-medium leading-none',
-              SIZES[size].value,
-              accent,
-            )}
-          >
-            {value}
-          </span>
-        )}
-      </div>
+      )}
     </div>
   );
 }
-
